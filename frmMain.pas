@@ -1,0 +1,165 @@
+unit frmMain;
+
+interface
+
+uses System.SysUtils, System.Types, System.UITypes, System.Classes,
+  System.Variants, FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics,
+  FMX.Dialogs, FMX.Menus, FMX.StdCtrls, FMX.Controls.Presentation, FMX.Media,
+  FMX.Layouts, FMX.MultiView, FMX.ListView.Types, FMX.ListView.Appearances,
+  FMX.ListView.Adapters.Base, FMX.ListView, FMX.Edit, FMX.SearchBox,
+  FMX.ListBox, Data.Bind.GenData, System.Rtti, System.Bindings.Outputs,
+  FMX.Bind.Editors, Data.Bind.EngExt, FMX.Bind.DBEngExt, Data.Bind.Components,
+  Data.Bind.ObjectScope, FMX.StdActns, System.Actions, FMX.ActnList,
+  System.Math.Vectors, FMX.Controls3D, FMX.Layers3D;
+
+type
+  TForm1 = class(TForm)
+    _mp: TMediaPlayer;
+    StatusBar1: TStatusBar;
+    MainMenu1: TMainMenu;
+    MenuItem1: TMenuItem;
+    MenuItem4: TMenuItem;
+    _layList: TLayout;
+    _fl: TListView;
+    Layout2: TLayout;
+    layPlayer: TLayout;
+    MediaPlayerControl1: TMediaPlayerControl;
+    layCtrl: TLayout;
+    _pos: TTrackBar;
+    _vol: TTrackBar;
+    ActionList1: TActionList;
+    MediaPlayerStart1: TMediaPlayerStart;
+    MediaPlayerStop1: TMediaPlayerStop;
+    MediaPlayerCurrentTime1: TMediaPlayerCurrentTime;
+    MediaPlayerVolume1: TMediaPlayerVolume;
+    MediaPlayerPlayPause1: TMediaPlayerPlayPause;
+    Button1: TButton;
+    Button2: TButton;
+    Splitter1: TSplitter;
+    _dlgOpen: TOpenDialog;
+    procedure Button1Click(Sender: TObject);
+    procedure Button2Click(Sender: TObject);
+    procedure _flKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+  private
+    { Private declarations }
+    procedure _fillFiles;
+    procedure _shortcut(_pKey: Word);
+    procedure _doesNothing;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.fmx}
+
+procedure TForm1.Button1Click(Sender: TObject);
+begin
+  _fillFiles;
+end;
+
+procedure TForm1.Button2Click(Sender: TObject);
+begin
+  _mp.FileName := _fl.Selected.TagString;
+  _mp.Play;
+end;
+
+procedure TForm1._doesNothing;
+begin
+//il codice di seguito serve per lapplicazione nativa per windows VCL32 per fare il resize de  video utilizzando il
+//  tmediaplayer che visualizza su un componente pannello o animation.
+// da verificare gli eventuali calcolo da eseguire
+
+{var
+r: Trect;
+w: integer;
+h: integer;
+p: integer;
+v: integer;
+begin
+MediaPlayer1.Open;
+
+r.Right :=300;
+r.Bottom:=200;
+r.Left:=200;
+r.top:=200;
+
+
+w := MediaPlayer1.DisplayRect.Right;
+h := MediaPlayer1.DisplayRect.Bottom;
+p := round(w/h);
+v := 505;         // video will display at this size
+if(w >= h) then
+begin
+    r.right := v;
+    r.bottom := round(v/p);
+end
+    else
+    begin r.bottom := v*p;
+          r.right := v;
+    end;
+          r.left := 0;
+          r.top := 0;
+MediaPlayer1.DisplayRect := r;
+MediaPlayer1.Play;
+end;}
+end;
+
+procedure TForm1._fillFiles;
+// carico i file della cartella
+var
+  _pDir: string;
+  _file: TListViewItem;
+  _SR: TSearchRec;
+begin
+  // apro la dialog per selezionare una cartella e caricarne il contenuto di video
+  if _dlgOpen.Execute then
+  begin
+    _pDir := ExtractFilePath(_dlgOpen.FileName);
+    _fl.items.Clear();
+    FindFirst(_pDir + '*.*', faAnyFile, _SR);
+    try
+      repeat
+        if ((_SR.Attr and faDirectory) = 0) then
+        begin
+          _file := _fl.items.Add;
+          _file.Text := _SR.Name;
+          _file.Detail := DateTimeToStr(_SR.TimeStamp) + ' ' + _SR.Size.ToString;
+          _file.TagString := _pDir + _SR.Name;
+        end;
+
+      until (FindNext(_SR) <> 0);
+    finally
+      FindClose(_SR);
+    end;
+  end;
+
+end;
+
+procedure TForm1._flKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+begin
+  _shortcut(Key);
+end;
+
+procedure TForm1._shortcut(_pKey: Word);
+// shotcut per eseguire le funzioni
+begin
+  // barra spaziatrice start/stop
+  if _pKey = 0 then
+  begin
+    if _fl.Selected <> nil then
+    begin
+      _mp.FileName := _fl.Selected.TagString;
+      if _mp.State = TMediaState.Playing then
+        _mp.Stop
+      else
+        _mp.Play;
+    end;
+  end;
+
+end;
+
+end.
