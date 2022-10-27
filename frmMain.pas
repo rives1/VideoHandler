@@ -23,7 +23,7 @@ type
     _fl: TListView;
     Layout2: TLayout;
     layPlayer: TLayout;
-    MediaPlayerControl1: TMediaPlayerControl;
+    _mcontrol: TMediaPlayerControl;
     layCtrl: TLayout;
     _pos: TTrackBar;
     _vol: TTrackBar;
@@ -40,6 +40,8 @@ type
     procedure Button1Click(Sender: TObject);
     procedure Button2Click(Sender: TObject);
     procedure _flKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+    procedure _posMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
+    procedure _flKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
   private
     { Private declarations }
     procedure _fillFiles;
@@ -69,43 +71,43 @@ end;
 
 procedure TForm1._doesNothing;
 begin
-//il codice di seguito serve per lapplicazione nativa per windows VCL32 per fare il resize de  video utilizzando il
-//  tmediaplayer che visualizza su un componente pannello o animation.
-// da verificare gli eventuali calcolo da eseguire
+  // il codice di seguito serve per lapplicazione nativa per windows VCL32 per fare il resize de  video utilizzando il
+  // tmediaplayer che visualizza su un componente pannello o animation.
+  // da verificare gli eventuali calcolo da eseguire
 
-{var
-r: Trect;
-w: integer;
-h: integer;
-p: integer;
-v: integer;
-begin
-MediaPlayer1.Open;
+  { var
+    r: Trect;
+    w: integer;
+    h: integer;
+    p: integer;
+    v: integer;
+    begin
+    MediaPlayer1.Open;
 
-r.Right :=300;
-r.Bottom:=200;
-r.Left:=200;
-r.top:=200;
+    r.Right :=300;
+    r.Bottom:=200;
+    r.Left:=200;
+    r.top:=200;
 
 
-w := MediaPlayer1.DisplayRect.Right;
-h := MediaPlayer1.DisplayRect.Bottom;
-p := round(w/h);
-v := 505;         // video will display at this size
-if(w >= h) then
-begin
+    w := MediaPlayer1.DisplayRect.Right;
+    h := MediaPlayer1.DisplayRect.Bottom;
+    p := round(w/h);
+    v := 505;         // video will display at this size
+    if(w >= h) then
+    begin
     r.right := v;
     r.bottom := round(v/p);
-end
+    end
     else
     begin r.bottom := v*p;
-          r.right := v;
+    r.right := v;
     end;
-          r.left := 0;
-          r.top := 0;
-MediaPlayer1.DisplayRect := r;
-MediaPlayer1.Play;
-end;}
+    r.left := 0;
+    r.top := 0;
+    MediaPlayer1.DisplayRect := r;
+    MediaPlayer1.Play;
+    end; }
 end;
 
 procedure TForm1._fillFiles;
@@ -139,24 +141,50 @@ begin
 
 end;
 
+
 procedure TForm1._flKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 begin
+//  _shortcut(Key);
+end;
+
+procedure TForm1._flKeyUp(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
+begin
   _shortcut(Key);
+
+end;
+
+procedure TForm1._posMouseWheel(Sender: TObject; Shift: TShiftState; WheelDelta: Integer; var Handled: Boolean);
+begin
+  if (_mp.State = TMediaState.Playing) and (WheelDelta > 0) then
+    _pos.Value := _pos.Value + 1
+  else
+    _pos.Value := _pos.Value - 1;
 end;
 
 procedure TForm1._shortcut(_pKey: Word);
 // shotcut per eseguire le funzioni
 begin
-  // barra spaziatrice start/stop
-  if _pKey = 0 then
+  // comandi per il playing
+  if _fl.Selected <> nil then
   begin
-    if _fl.Selected <> nil then
+    // barra spaziatrice start/stop
+    if _pKey = 20 then
     begin
       _mp.FileName := _fl.Selected.TagString;
       if _mp.State = TMediaState.Playing then
         _mp.Stop
       else
+      begin
         _mp.Play;
+        _vol.Value := 20;
+      end;
+    end;
+
+    // freccia a sx va avanti di 1%
+    if _pKey = 39 then
+    begin
+      if _mp.State = TMediaState.Playing then
+        _pos.Value := _pos.Value + 1;
     end;
   end;
 
